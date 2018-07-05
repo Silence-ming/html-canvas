@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>画图板</title>
+    <script src="jQuery.js"></script>
+</head>
+<body>
+<style>
+    *{
+        margin:0;padding:0;
+        font-family: '楷体';
+        font-weight:500;
+    }
+    .box{
+        width:100%;height:100%;
+        -webkit-user-select: none;
+        background: tan;
+        position:relative;
+    }
+    .side{
+        padding:80px 15px;
+        position:absolute;
+        width:150px;
+        right:30px;
+        top:0;
+    }
+    .side .menu1{
+        margin-top:10px;
+        padding:5px 8px;
+        border:1px solid #ccc
+    }
+    canvas{
+        margin:0 auto;
+    }
+    .menus{
+        width:100%;height:30px;
+        background:#ccc;
+    }
+    .menus .menu{
+        width:85px;
+        height:30px;
+        border-radius: 3px;
+        text-align: center;
+        line-height:30px;
+        float:left;
+        margin-left:50px;
+        position:relative;
+        cursor:pointer;
+    }
+    .menus .menu:hover{
+        background:violet;
+        color:lawngreen;
+    }
+    .menu .select{
+        position:absolute;
+        left:0;top:30px;
+        border:1px solid #ccc;
+        padding:5px 0;
+        display: none;
+        cursor:pointer;
+        background:#ccc;
+    }
+    .select .son{
+        width:80px;
+    }
+    .select .son:hover{
+        color:#ff6700;
+    }
+    input[type='button']{
+        width:50px;
+        margin-left:8px;
+        margin-top:5px;
+    }
+    input[type='button']:hover{
+        color:red;
+    }
+    input[type='color']{
+        margin-top:5px;
+    }
+    input[type='number']{
+        width:60px;
+        margin-top:5px;
+        background:#cccccc;
+    }
+    .menu1 span{
+        padding:0 10px;
+    }
+</style>
+    <div class="box">
+        <div class="menus">
+            <div class="menu">
+                <span>填充与描边</span>
+                <div class="select fill">
+                    <div class="son" attr="stroke">描边</div>
+                    <div class="son" attr="fill">填充</div>
+                </div>
+            </div>
+            <div class="menu">
+                <span>图形</span>
+                <div class="select type">
+                    <div class="son" attr="line">直线</div>
+                    <div class="son" attr="pen">钢笔</div>
+                    <div class="son" attr="rect">矩形</div>
+                    <div class="son" attr="arc">圆弧</div>
+                    <div class="son" attr="bian">多边形</div>
+                    <div class="son" attr="jiao">多角形</div>
+                </div>
+            </div>
+            <div class="menu">
+                <span>线宽</span>
+                <div class="select width">
+                    <div class="son" attr="9">粗</div>
+                    <div class="son" attr="4">中</div>
+                    <div class="son" attr="1">细</div>
+                </div>
+            </div>
+            <div class="menu delete">
+                <span>橡皮檫</span>
+            </div>
+            <div class="menu dels">
+                <span>清空</span>
+            </div>
+        </div>
+        <canvas id=canvas width="1100" height="640" style="background-color: #fff">
+        </canvas>
+        <div class="side">
+             <div class="menu1">
+                <span>自定义颜色</span>
+                <div class="select color">
+                    <span>描边色: </span>
+                    <input id=color1 type="color"><br>
+                    <span>填充色: </span>
+                    <input id=color2 type="color">
+                    <input type="button" class="son" value="确定">
+                </div>
+            </div>
+             <div class="menu1">
+                <span>自定义线宽</span>
+                <div class="select widths">
+                    <input id=widths type="number" min='1' max="10" temp="1">
+                    <input type="button" onclick=wid() value="确定">
+                </div>
+            </div>
+             <div class="menu1">
+                <span>自定义弧度</span>
+                <div class="select angles">
+                    <input id=angles type="number" min='0.1' max="2" temp="0.1">
+                    <input type="button" onclick=angles() value="确定">
+                </div>
+            </div>
+             <div class="menu1">
+                <span>自定义边数</span>
+                <div class="select numb">
+                    <input id=numb type="number" min='3' max="20" temp="1">
+                    <input type="button" onclick=numb() value="确定">
+                </div>
+            </div>
+            <div class="menu1">
+                <span>自定义角数</span>
+                <div class="select nums">
+                    <input id=nums type="number" min='3' max="20" temp="1">
+                    <input type="button" onclick=nums() value="确定">
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    canvas=document.getElementById('canvas')
+    tx=canvas.getContext('2d')
+
+    class shape{
+        constructor(tx,canvas){
+            this.tx=tx;
+            this.x='';
+            this.y='';
+            this.movex='';
+            this.movey='';
+            this.canvas=canvas;
+            this.r=50;
+            this.angle=2;
+            this.numb=5;
+            this.numj=5;
+            this.width=2;
+            this.fillColor='#000';
+            this.strokeColor='#000';
+            this.type='pen';
+            this.history=[];
+            this.fill='stroke';
+        };
+        draw(){
+            this._down()
+        };
+        _down(){
+            this.canvas.onmousedown=(event)=>{
+                this.x=event.offsetX;
+                this.y=event.offsetY;
+                this._move();
+                this._ups();
+            }
+        }
+        _move(){
+            this.canvas.onmousemove=(event)=>{
+                this.movex=event.offsetX;
+                this.movey=event.offsetY;
+                if (this.type != 'pen' && this.type !='easer') {
+                    this.tx.clearRect(0, 0, 1200, 600)
+                    if(this.history.length>0){
+                        this.tx.putImageData(this.history[this.history.length-1],0,0)
+                    }
+                }
+                this.tx.beginPath()
+                this._setAttr()
+                this[this.type]()
+                if (this.fill=='stroke'){
+                    this.tx.stroke()
+                }else if(this.fill=='fill'){
+                    this.tx.fill()
+                }
+            }
+        }
+        _ups(){
+             this.canvas.onmouseup=()=>{
+                 this.history.push(this.tx.getImageData(0,0,1200,600))
+                 this.canvas.onmousemove=null;
+                 this.canvas.onmouseup=null
+            }
+        }
+        _setAttr(){
+            this.tx.fillStyle=this.fillColor;
+            this.tx.strokeStyle=this.strokeColor;
+            this.tx.lineWidth=this.width
+        }
+        line(){
+            this.tx.moveTo(this.x,this.y)
+            this.tx.lineTo(this.movex,this.movey)
+        };
+        pen(){
+            this.tx.moveTo(this.x,this.y);
+            this.tx.lineTo(this.movex,this.movey);
+            this.x=this.movex;
+            this.y=this.movey
+        }
+        easer(){
+            this.tx.lineWidth=20;
+            this.tx.strokeStyle='#FFF'
+            this.tx.moveTo(this.x,this.y);
+            this.tx.lineTo(this.movex,this.movey);
+            this.x=this.movex;
+            this.y=this.movey;
+            this.tx.stroke()
+        }
+        rect(){
+            this.tx.rect(this.x,this.y,this.movex-this.x,this.movey-this.y)
+        };
+        arc(){
+            this.r=Math.sqrt((this.movey-this.y)*(this.movey-this.y)+(this.movex-this.x)*(this.movex-this.x));
+            this.tx.arc(this.x,this.y,this.r,0,Math.PI*this.angle)
+        }
+        bian(x,y,r,num){
+            x=this.x;
+            y=this.y;
+            r=Math.sqrt((this.movey-this.y)*(this.movey-this.y)+(this.movex-this.x)*(this.movex-this.x));
+            num=this.numb;
+            for(var i=0;i<num;i++){
+                var angle=360/num*i;
+                var endx=Math.cos(angle*Math.PI/180)*r+x;
+                var endy=Math.sin(angle*Math.PI/180)*r+y;
+                this.tx.lineTo(endx,endy)
+            }
+            this.tx.closePath()
+        }
+        jiao(x,y,r1,r2,num){
+            x=this.x;
+            y=this.y;
+            r1=Math.sqrt((this.movey-this.y)*(this.movey-this.y)+(this.movex-this.x)*(this.movex-this.x));
+            r2=r1/2;
+            num=this.numj;
+             for(var i=0;i<2*num;i++){
+                 var angle=360/(num*2)*i
+                 if(i%2==0){
+                     var movex=Math.cos(angle*Math.PI/180)*r1+x
+                     var movey=Math.sin(angle*Math.PI/180)*r1+y
+                     this.tx.lineTo(movex,movey)
+                 }else{
+                     var movex=Math.cos(angle*Math.PI/180)*r2+x
+                     var movey=Math.sin(angle*Math.PI/180)*r2+y
+                     this.tx.lineTo(movex,movey)
+                 }
+            }
+        this.tx.closePath()
+        }
+    }
+
+    obj=new shape(tx,canvas)
+
+    $('.menu').hover(function(){
+        $(this).find('.select').css('display','block')
+    },function(){
+        $(this).find('.select').css('display','none')
+    })
+    $('.type .son').click(function(){
+        obj.type=$(this).attr('attr')
+        obj.draw()
+        $(this).parent().css('display','none')
+    })
+    $('.width .son').click(function(){
+         obj.width=$(this).attr('attr')
+         obj.draw()
+        $(this).parent().css('display','none')
+    });
+    $('.color .son').click(function(){
+        obj.strokeColor=$('#color1').val()
+        obj.fillColor=$('#color2').val()
+        obj.draw()
+    })
+    $('.fill .son').click(function(){
+        obj.fill=$(this).attr('attr')
+        obj.draw()
+        $(this).parent().css('display','none')
+    })
+    $('.dels').click(function(){
+        obj.history=[]
+        tx.clearRect(0,0,canvas.width,canvas.height)
+    });
+    $('.delete').click(function(){
+        obj.type='easer'
+        obj.draw()
+    })
+    function wid(){
+        obj.width=$('#widths').val()
+    }
+    function angles(){
+        obj.angle=$('#angles').val()
+    }
+    function nums(){
+        obj.numj=$('#nums').val()
+    }
+    function numb(){
+        obj.numb=$('#numb').val()
+    }
+</script>
+</html>
