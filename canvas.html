@@ -12,7 +12,7 @@
 <style>
     *{
         margin:0;padding:0;
-        font-family: '楷体';
+
         font-weight:500;
     }
     .box{
@@ -97,6 +97,7 @@
                 <div class="select fill">
                     <div class="son" attr="stroke">描边</div>
                     <div class="son" attr="fill">填充</div>
+                    <div class="son" attr="both">Both</div>
                 </div>
             </div>
             <div class="menu">
@@ -135,7 +136,6 @@
                     <input id=color1 type="color"><br>
                     <span>填充色: </span>
                     <input id=color2 type="color">
-                    <input type="button" class="son" value="确定">
                 </div>
             </div>
              <div class="menu1">
@@ -190,7 +190,7 @@
             this.strokeColor='#000';
             this.type='pen';
             this.history=[];
-            this.fill='stroke';
+            this.fill='both';
         };
         draw(){
             this._down()
@@ -219,6 +219,9 @@
                 if (this.fill=='stroke'){
                     this.tx.stroke()
                 }else if(this.fill=='fill'){
+                    this.tx.fill()
+                }else if (this.fill=='both'){
+                    this.tx.stroke()
                     this.tx.fill()
                 }
             }
@@ -313,9 +316,12 @@
          obj.draw()
         $(this).parent().css('display','none')
     });
-    $('.color .son').click(function(){
-        obj.strokeColor=$('#color1').val()
-        obj.fillColor=$('#color2').val()
+    $('#color1').change(function(){
+        obj.strokeColor=$(this).val()
+        obj.draw()
+    })
+    $('#color2').change(function(){
+        obj.fillColor=$(this).val()
         obj.draw()
     })
     $('.fill .son').click(function(){
